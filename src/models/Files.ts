@@ -1,0 +1,16 @@
+import mongoose, { Schema } from "mongoose";
+
+const fileSchema = new Schema({
+  fileName: { type: String, required: true },
+  fileUrl: { type: String, required: true },
+  uploadedBy: { type: mongoose.Schema.Types.ObjectId, required: true },
+  fileType: {
+    type: String,
+    enum: ["pdf", "png", "jpg", "jpeg", "docx"],
+    required: true,
+  },
+  description: { type: String, required: true },
+  roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
+});
+
+export const Files = mongoose.model("File", fileSchema);
