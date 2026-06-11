@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth";
+import roomRoutes from "./routes/room";
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/auth", authRoutes);
+app.use("/room", roomRoutes);
 
 mongoose
   .connect(process.env.MONGODB_URI as string)

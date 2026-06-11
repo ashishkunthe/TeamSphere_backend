@@ -4,11 +4,11 @@ const noticeSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   ownerId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: true,
     ref: "User",
   },
-  roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
+  roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true },
 });
 
 export const Notice = mongoose.model("Notice", noticeSchema);
