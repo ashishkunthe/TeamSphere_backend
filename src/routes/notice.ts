@@ -176,4 +176,40 @@ route.patch(
   }
 );
 
+route.delete(
+  "/delete-notice/:noticeId",
+  authMiddleware as () => void,
+  async (req, res) => {
+    // @ts-ignore
+    const request = req as requestExtended;
+    const userId = request.userId;
+
+    const noticeId = req.params.noticeId;
+
+    try {
+      const findNotice = await Notice.findById(noticeId);
+
+      if (!findNotice) {
+        res.status(404).json({
+          message: "Notice not found",
+        });
+        return;
+      }
+
+      if (findNotice.ownerId.toString() !== userId) {
+        res.status(403).json({
+          message: "You are not allowed to perform this action",
+        });
+        return;
+      }
+
+      await Notice.findByIdAndDelete(noticeId);
+
+      res.status(200).json({
+        message: "Notice deleted",
+      });
+    } catch (error) {}
+  }
+);
+
 export default route;
