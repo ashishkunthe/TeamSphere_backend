@@ -23,8 +23,8 @@ route.post(
     const input = noticeTypes.safeParse(req.body);
 
     if (!input.success) {
-      res.status(402).json({
-        message: "Inputs are required",
+      res.status(400).json({
+        message: "Invalid inputs",
       });
       return;
     }
@@ -41,11 +41,12 @@ route.post(
         return;
       }
 
-      if (!room.members.includes(new mongoose.Types.ObjectId(userId))) {
-        res.status(403).json({
+      const isMember = room.members.some((id) => id.toString() === userId);
+
+      if (!isMember) {
+        return res.status(403).json({
           message: "You are not in this room",
         });
-        return;
       }
 
       const notice = await Notice.create({
@@ -73,7 +74,10 @@ route.get(
   authMiddleware as () => void,
   async (req, res) => {
     // @ts-ignore
+    const request = req as requestExtended;
     const roomId = req.params.roomId;
+
+    const userId = request.userId;
 
     try {
       const room = await Room.findById(roomId);
@@ -85,14 +89,18 @@ route.get(
         return;
       }
 
-      const notices = await Notice.find({ roomId });
+      const isMember = room.members.some((id) => id.toString() === userId);
 
-      if (!notices) {
-        res.status(200).json({
-          message: "No notices are present",
+      if (!isMember) {
+        return res.status(403).json({
+          message: "You are not in this room",
         });
-        return;
       }
+
+      const notices = await Notice.find({ roomId }).populate(
+        "ownerId",
+        "username"
+      );
 
       res.status(200).json({
         message: "Notices present in this room",
@@ -156,6 +164,13 @@ route.patch(
         res.status(403).json({
           message: "you are not allowed to perform the this action",
         });
+        return;
+      }
+
+      if (notice.roomId.toString() !== roomId) {
+        return res.status(400).json({
+          message: "Notice does not belong to this room",
+        });
       }
       const { title, description } = input.data;
 
@@ -208,7 +223,12 @@ route.delete(
       res.status(200).json({
         message: "Notice deleted",
       });
-    } catch (error) {}
+    } catch (error) {
+      console.log("Error in deleting notice", error);
+      res.status(500).json({
+        message: "Something went wrong",
+      });
+    }
   }
 );
 
