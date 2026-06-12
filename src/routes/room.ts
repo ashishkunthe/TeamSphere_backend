@@ -2,7 +2,6 @@ import { Request, Router } from "express";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { Room } from "../models/Rooms";
 import { roomCreateTypes } from "../types/roomTypes";
-import mongoose from "mongoose";
 
 const route = Router();
 
