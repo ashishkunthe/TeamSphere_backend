@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 
 const route = Router();
 
-route.post("/regiter", async (req, res) => {
+route.post("/register", async (req, res) => {
   const inputs = registerTypes.safeParse(req.body);
 
   if (!inputs.success) {

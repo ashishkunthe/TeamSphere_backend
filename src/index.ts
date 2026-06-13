@@ -6,6 +6,8 @@ import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth";
 import roomRoutes from "./routes/room";
+import noticeRoutes from "./routes/notice";
+import fileRoutes from "./routes/file";
 
 dotenv.config();
 
@@ -16,7 +18,8 @@ app.use(express.json());
 
 app.use("/auth", authRoutes);
 app.use("/room", roomRoutes);
-
+app.use("/notice", noticeRoutes);
+app.use("/file", fileRoutes);
 mongoose
   .connect(process.env.MONGODB_URI as string)
   .then(() => {

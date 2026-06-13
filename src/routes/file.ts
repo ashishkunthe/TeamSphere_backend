@@ -112,6 +112,47 @@ route.post(
   }
 );
 
+route.get("/files/:roomId", authMiddleware as () => void, async (req, res) => {
+  // @ts-ignore
+  const request = req as requestExtended;
+  const userId = request.userId;
+  const roomId = req.params.roomId;
+
+  try {
+    const room = await Room.findById(roomId);
+
+    if (!room) {
+      res.status(404).json({
+        message: "Room not found",
+      });
+      return;
+    }
+
+    const isMember = room.members.some((id) => id.toString() === userId);
+
+    if (!isMember) {
+      res.status(403).json({
+        message: "you are not member of this room",
+      });
+      return;
+    }
+
+    const files = await Files.find({ roomId })
+      .populate("uploadedBy", "username")
+      .populate("roomId", "name");
+
+    res.status(200).json({
+      message: "Files fetched",
+      files: files,
+    });
+  } catch (error) {
+    console.log("Error in fetching files of room", error);
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
 route.delete(
   "/delete-file/:roomId/:fileId",
   authMiddleware as () => void,
