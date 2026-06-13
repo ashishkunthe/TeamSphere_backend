@@ -112,4 +112,77 @@ route.post(
   }
 );
 
+route.delete(
+  "/delete-file/:roomId/:fileId",
+  authMiddleware as () => void,
+  async (req, res) => {
+    // @ts-ignore
+    const request = req as requestExtended;
+    const userId = request.userId;
+    const roomId = req.params.roomId;
+    const fileId = req.params.fileId;
+
+    try {
+      const room = await Room.findById(roomId);
+
+      if (!room) {
+        res.status(403).json({
+          message: "Room not found",
+        });
+        return;
+      }
+
+      const isMember = room.members.some((id) => id.toString() === userId);
+
+      if (!isMember) {
+        res.status(403).json({
+          message: "You are not member of room",
+        });
+        return;
+      }
+
+      const file = await Files.findById(fileId);
+
+      if (!file) {
+        res.status(404).json({
+          message: "file not exist",
+        });
+        return;
+      }
+
+      if (file.roomId.toString() !== roomId) {
+        return res.status(400).json({
+          message: "File does not belong to this room",
+        });
+      }
+
+      if (file.uploadedBy.toString() !== userId) {
+        res.status(403).json({
+          message: "you're not allowed to perform this action",
+        });
+        return;
+      }
+
+      const { error } = await supabase.storage
+        .from("TeamSpherefiles")
+        .remove([file.fileName]);
+
+      if (error) {
+        throw error;
+      }
+
+      await Files.findByIdAndDelete(fileId);
+
+      res.status(200).json({
+        message: "File deleted sucessfully",
+      });
+    } catch (error) {
+      console.log("Error in deleting file", error);
+      res.status(500).json({
+        message: "Something went wrong",
+      });
+    }
+  }
+);
+
 export default route;
