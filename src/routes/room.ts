@@ -217,4 +217,15 @@ route.delete(
   }
 );
 
+route.get(
+  "/joined-rooms",
+  authMiddleware as () => void,
+  async (req, res) => {}
+);
+
+route.get(
+  "/joined-rooms/:roomId",
+  authMiddleware as () => void,
+  async (req, res) => {}
+);
 export default route;
