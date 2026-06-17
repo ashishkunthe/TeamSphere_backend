@@ -217,15 +217,70 @@ route.delete(
   }
 );
 
-route.get(
-  "/joined-rooms",
-  authMiddleware as () => void,
-  async (req, res) => {}
-);
+route.get("/joined-rooms", authMiddleware as () => void, async (req, res) => {
+  const request = req as requestExtended;
+  const userId = request.userId;
+
+  try {
+    const rooms = await Room.find({
+      members: userId,
+    });
+
+    res.status(200).json({
+      message: "All the rooms",
+      rooms: rooms,
+    });
+  } catch (error) {
+    console.log("Error fetching joined rooms", error);
+
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
 
 route.get(
   "/joined-rooms/:roomId",
   authMiddleware as () => void,
-  async (req, res) => {}
+  async (req, res) => {
+    // @ts-ignore
+    const request = req as requestExtended;
+    const userId = request.userId;
+
+    const roomId = req.params.roomId;
+
+    try {
+      const room = await Room.findById(roomId)
+        .populate("members", "username email")
+        .populate("owner", "username email");
+
+      if (!room) {
+        return res.status(404).json({
+          message: "Room not found",
+        });
+      }
+
+      const isMember = room.members.some(
+        (member: any) => member._id.toString() === userId
+      );
+
+      if (!isMember) {
+        return res.status(403).json({
+          message: "You are not a member of this room",
+        });
+      }
+
+      res.status(200).json({
+        message: "Room details fetched",
+        room,
+      });
+    } catch (error) {
+      console.log("Error fetching room details", error);
+
+      res.status(500).json({
+        message: "Something went wrong",
+      });
+    }
+  }
 );
 export default route;
