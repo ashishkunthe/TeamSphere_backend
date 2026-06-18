@@ -3,7 +3,6 @@ import { authMiddleware } from "../middleware/authMiddleware";
 import { noticeTypes } from "../types/noticeTypes";
 import { Notice } from "../models/Notice";
 import { Room } from "../models/Rooms";
-import mongoose from "mongoose";
 
 const route = Router();
 
@@ -41,9 +40,11 @@ route.post(
         return;
       }
 
+      const isOwner = room.owner.toString() === userId;
+
       const isMember = room.members.some((id) => id.toString() === userId);
 
-      if (!isMember) {
+      if (!isOwner && !isMember) {
         return res.status(403).json({
           message: "You are not in this room",
         });
@@ -89,9 +90,11 @@ route.get(
         return;
       }
 
+      const isOwner = room.owner.toString() === userId;
+
       const isMember = room.members.some((id) => id.toString() === userId);
 
-      if (!isMember) {
+      if (!isOwner && !isMember) {
         return res.status(403).json({
           message: "You are not in this room",
         });
@@ -144,11 +147,14 @@ route.patch(
         return;
       }
 
-      if (!room.members.includes(new mongoose.Types.ObjectId(userId))) {
-        res.status(403).json({
+      const isOwner = room.owner.toString() === userId;
+
+      const isMember = room.members.some((id) => id.toString() === userId);
+
+      if (!isOwner && !isMember) {
+        return res.status(403).json({
           message: "You are not allowed to performe this operation",
         });
-        return;
       }
 
       const notice = await Notice.findById(noticeId);

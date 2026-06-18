@@ -46,11 +46,13 @@ route.post(
         });
       }
 
+      const isOwner = room.owner.toString() === userId;
+
       const isMember = room.members.some((id) => id.toString() === userId);
 
-      if (!isMember) {
+      if (!isOwner && !isMember) {
         return res.status(403).json({
-          message: "You are not a member of this room",
+          message: "You are not in this room",
         });
       }
 
@@ -128,13 +130,14 @@ route.get("/files/:roomId", authMiddleware as () => void, async (req, res) => {
       return;
     }
 
+    const isOwner = room.owner.toString() === userId;
+
     const isMember = room.members.some((id) => id.toString() === userId);
 
-    if (!isMember) {
-      res.status(403).json({
-        message: "you are not member of this room",
+    if (!isOwner && !isMember) {
+      return res.status(403).json({
+        message: "You are not in this room",
       });
-      return;
     }
 
     const files = await Files.find({ roomId })
@@ -173,13 +176,14 @@ route.delete(
         return;
       }
 
+      const isOwner = room.owner.toString() === userId;
+
       const isMember = room.members.some((id) => id.toString() === userId);
 
-      if (!isMember) {
-        res.status(403).json({
-          message: "You are not member of room",
+      if (!isOwner && !isMember) {
+        return res.status(403).json({
+          message: "You are not in this room",
         });
-        return;
       }
 
       const file = await Files.findById(fileId);
