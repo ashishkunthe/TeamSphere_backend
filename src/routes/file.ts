@@ -70,7 +70,9 @@ route.post(
         });
       }
 
-      const fileName = `${Date.now()}-${file.originalname}`;
+      const fileName = `${Date.now()}-${file.originalname
+        .replace(/\s+/g, "-")
+        .replace(/[^\w.-]/g, "")}`;
 
       const { error } = await supabase.storage
         .from("TeamSpherefiles")
