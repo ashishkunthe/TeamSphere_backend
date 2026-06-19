@@ -122,6 +122,12 @@ route.post(
         return;
       }
 
+      if (memberId === userId) {
+        return res.status(400).json({
+          message: "You are already the room owner",
+        });
+      }
+
       const findRoom = await Room.findById(roomId);
 
       if (!findRoom) {
@@ -138,7 +144,11 @@ route.post(
         return;
       }
 
-      if (findRoom.members.includes(memberId)) {
+      const alreadyMember = findRoom.members.some(
+        (id) => id.toString() === memberId
+      );
+
+      if (alreadyMember) {
         return res.status(400).json({
           message: "User already exists in room",
         });

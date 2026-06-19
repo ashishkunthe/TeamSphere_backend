@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth";
 import roomRoutes from "./routes/room";
 import noticeRoutes from "./routes/notice";
 import fileRoutes from "./routes/file";
+import usersRoutes from "./routes/user";
 
 dotenv.config();
 
@@ -20,6 +21,8 @@ app.use("/auth", authRoutes);
 app.use("/room", roomRoutes);
 app.use("/notice", noticeRoutes);
 app.use("/file", fileRoutes);
+app.use("/user", usersRoutes);
+
 mongoose
   .connect(process.env.MONGODB_URI as string)
   .then(() => {
