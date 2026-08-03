@@ -12,6 +12,8 @@ export function authMiddleware(
 ) {
   const token = req.cookies.token;
 
+  console.log(token);
+
   try {
     if (!token) {
       res.status(403).json({
