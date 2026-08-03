@@ -10,7 +10,7 @@ export function authMiddleware(
   res: Response,
   next: NextFunction
 ) {
-  const token = req.headers.authorization;
+  const token = req.cookies.token;
 
   try {
     if (!token) {

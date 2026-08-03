@@ -1,9 +1,10 @@
-import { Router } from "express";
+import { Request, Router } from "express";
 import { loginTypes, registerTypes } from "../types/authTypes";
 import { User } from "../models/User";
 
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const route = Router();
 
@@ -31,9 +32,15 @@ route.post("/register", async (req, res) => {
       process.env.JWT_SECRET as string
     );
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(201).json({
       message: "User registration completed",
-      token: token,
     });
   } catch (error) {
     console.log("Error in registration of user", error);
@@ -78,9 +85,15 @@ route.post("/login", async (req, res) => {
       process.env.JWT_SECRET as string
     );
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(200).json({
       message: "Login sucessful",
-      token: token,
     });
   } catch (error) {
     console.log("Error in login ", error);
@@ -88,6 +101,18 @@ route.post("/login", async (req, res) => {
       message: "Something went wrong",
     });
   }
+});
+
+interface requestExtended extends Request {
+  userId: string;
+}
+
+route.get("/me", authMiddleware as any, async (req, res) => {
+  const request = req as requestExtended;
+  res.status(200).json({
+    authenticated: true,
+    userId: request.userId,
+  });
 });
 
 export default route;
