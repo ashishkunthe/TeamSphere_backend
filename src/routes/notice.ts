@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/authMiddleware";
 import { noticeTypes } from "../types/noticeTypes";
 import { Notice } from "../models/Notice";
 import { Room } from "../models/Rooms";
+import { broadCastToRoom } from "../websocket/websocket";
 
 const route = Router();
 
@@ -57,6 +58,16 @@ route.post(
         roomId,
       });
 
+      broadCastToRoom(roomId, {
+        type: "NEW_NOTICE",
+        notice: {
+          id: notice._id,
+          title: notice.title,
+          description: notice.description,
+          ownerId: userId,
+        },
+      });
+
       res.status(200).json({
         message: "Notice created",
         id: notice._id,
@@ -100,10 +111,9 @@ route.get(
         });
       }
 
-      const notices = await Notice.find({ roomId }).populate(
-        "ownerId",
-        "username"
-      );
+      const notices = await Notice.find({ roomId })
+        .populate("ownerId", "username")
+        .sort({ createdAt: -1 });
 
       res.status(200).json({
         message: "Notices present in this room",

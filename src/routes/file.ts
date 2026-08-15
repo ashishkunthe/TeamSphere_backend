@@ -6,6 +6,8 @@ import { supabase } from "../services/supabaseClient";
 import { Files } from "../models/Files";
 import { fileTypes } from "../types/fileTypes";
 import mongoose from "mongoose";
+import { broadCastToRoom } from "../websocket/websocket";
+import { User } from "../models/User";
 
 const route = Router();
 
@@ -101,6 +103,27 @@ route.post(
         uploadedBy: new mongoose.Types.ObjectId(userId),
       });
 
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({
+          message: "something went wrong",
+        });
+      }
+
+      broadCastToRoom(roomId, {
+        type: "NEW_FILE",
+        file: {
+          id: uploadedFile._id,
+          fileName: uploadedFile.fileName,
+          fileUrl: uploadedFile.fileUrl,
+          description: uploadedFile.description,
+          uploadedBy: {
+            username: user?.username,
+          },
+        },
+      });
+
       return res.status(201).json({
         message: "File uploaded successfully",
         fileUrl: publicData.publicUrl,
@@ -144,7 +167,8 @@ route.get("/files/:roomId", authMiddleware as () => void, async (req, res) => {
 
     const files = await Files.find({ roomId })
       .populate("uploadedBy", "username")
-      .populate("roomId", "name");
+      .populate("roomId", "name")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       message: "Files fetched",
